@@ -1,0 +1,673 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lomba Menulis Cerita Bahasa Indonesia</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6;
+        }
+        
+        /* Print Styles */
+        @media print {
+            body {
+                background-color: white;
+            }
+            .no-print {
+                display: none !important;
+            }
+            .print-only {
+                display: block !important;
+            }
+            .print-container {
+                width: 100%;
+                margin: 0;
+                padding: 0;
+            }
+            .page-break {
+                page-break-after: always;
+            }
+        }
+        
+        .print-only {
+            display: none;
+        }
+
+        /* Styling khusus untuk ekspor PDF A4 */
+        .pdf-page {
+            width: 210mm;
+            padding: 15mm 20mm;
+            background: white;
+            color: #0f172a;
+            font-family: 'Inter', sans-serif;
+            box-sizing: border-box;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+        }
+
+        /* Custom Scrollbar for Textarea */
+        textarea::-webkit-scrollbar {
+            width: 8px;
+        }
+        textarea::-webkit-scrollbar-track {
+            background: #f1f1f1; 
+            border-radius: 4px;
+        }
+        textarea::-webkit-scrollbar-thumb {
+            background: #cbd5e1; 
+            border-radius: 4px;
+        }
+        textarea::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8; 
+        }
+        
+        .loader {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3b82f6;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="text-slate-800 antialiased h-screen flex flex-col">
+
+    <!-- Navbar -->
+    <nav class="bg-blue-600 text-white shadow-md no-print shrink-0">
+        <div class="max-w-6xl mx-auto px-4 py-4 flex justify-between items-center">
+            <div class="flex items-center gap-2">
+                <i class="fas fa-book-open text-2xl"></i>
+                <h1 class="text-xl font-bold tracking-wide">PenaKita</h1>
+            </div>
+            <div id="nav-mode-indicator" class="text-sm font-medium bg-blue-700 px-3 py-1 rounded-full">
+                Mode Siswa
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content Area -->
+    <main class="flex-grow overflow-y-auto no-print">
+        
+        <!-- View: Student Form -->
+        <div id="student-view" class="max-w-4xl mx-auto px-4 py-8">
+            <div class="bg-white rounded-2xl shadow-xl overflow-hidden border border-slate-100">
+                <div class="bg-gradient-to-r from-blue-500 to-indigo-600 px-8 py-6 text-white text-center">
+                    <h2 class="text-3xl font-bold mb-2">Lomba Menulis Cerita</h2>
+                    <p class="text-blue-100">Tunjukkan imajinasi dan kreativitasmu! (Maks. 1700 kata)</p>
+                </div>
+                
+                <form id="submission-form" class="p-8 space-y-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- Nama Lengkap -->
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-700 mb-2">Nama Lengkap</label>
+                            <input type="text" id="input-nama" required
+                                class="w-full px-4 py-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition outline-none"
+                                placeholder="Masukkan nama lengkapmu">
+                        </div>
+                        
+                        <!-- Pilihan Kelas -->
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-700 mb-2">Kelas</label>
+                            <select id="input-kelas" required
+                                class="w-full px-4 py-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition outline-none bg-white">
+                                <option value="" disabled selected>Pilih Kelas</option>
+                                <option value="3">Kelas 3</option>
+                                <option value="4">Kelas 4</option>
+                                <option value="5">Kelas 5</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- Pilihan Tema -->
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-700 mb-2">Tema Cerita</label>
+                            <select id="input-tema" required
+                                class="w-full px-4 py-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition outline-none bg-white">
+                                <option value="" disabled selected>Pilih Tema</option>
+                                <option value="Menjaga Bumi">Menjaga Bumi</option>
+                                <option value="Aku dan Pahlawan">Aku dan Pahlawan</option>
+                                <option value="Merawat Budaya dan Tradisi">Merawat Budaya dan Tradisi</option>
+                            </select>
+                        </div>
+
+                        <!-- Judul Cerita -->
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-700 mb-2">Judul Cerita</label>
+                            <input type="text" id="input-judul" required
+                                class="w-full px-4 py-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition outline-none"
+                                placeholder="Ketik judul ceritamu di sini">
+                        </div>
+                    </div>
+
+                    <!-- Lembar Mengetik -->
+                    <div>
+                        <div class="flex justify-between items-end mb-2">
+                            <label class="block text-sm font-semibold text-slate-700">Lembar Cerita</label>
+                            <span id="word-counter" class="text-xs font-semibold px-2 py-1 rounded bg-slate-100 text-slate-600">
+                                0 / 1700 kata
+                            </span>
+                        </div>
+                        <textarea id="input-cerita" required rows="12"
+                            class="w-full px-4 py-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition outline-none resize-y"
+                            placeholder="Mulai ketik ceritamu di sini..."></textarea>
+                    </div>
+
+                    <!-- Submit Button -->
+                    <button type="submit" id="btn-submit"
+                        class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-lg transition shadow-lg shadow-blue-500/30 flex justify-center items-center gap-2">
+                        <i class="fas fa-paper-plane"></i> Kirim Karya
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- View: Admin Dashboard -->
+        <div id="admin-view" class="max-w-6xl mx-auto px-4 py-8 hidden">
+            <div class="flex justify-between items-center mb-6">
+                <div>
+                    <h2 class="text-2xl font-bold text-slate-800">Dashboard Admin</h2>
+                    <p class="text-slate-600">Kelola dan cetak hasil karya peserta lomba.</p>
+                </div>
+                <button onclick="fetchSubmissions()" class="bg-indigo-100 text-indigo-700 hover:bg-indigo-200 px-4 py-2 rounded-lg font-medium transition flex items-center gap-2">
+                    <i class="fas fa-sync-alt"></i> Segarkan Data
+                </button>
+            </div>
+
+            <div class="bg-white rounded-xl shadow-md overflow-hidden border border-slate-200">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-slate-50 text-slate-600 text-sm border-b border-slate-200">
+                                <th class="px-6 py-4 font-semibold">Nama Peserta</th>
+                                <th class="px-6 py-4 font-semibold">Kelas</th>
+                                <th class="px-6 py-4 font-semibold">Tema</th>
+                                <th class="px-6 py-4 font-semibold">Judul</th>
+                                <th class="px-6 py-4 font-semibold text-center">Skor AI</th>
+                                <th class="px-6 py-4 font-semibold text-center">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="admin-table-body" class="divide-y divide-slate-100">
+                            <!-- Data will be injected here -->
+                            <tr><td colspan="6" class="px-6 py-8 text-center text-slate-500">Memuat data...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Admin Switch Button (Hidden for students, click to toggle) -->
+    <button onclick="toggleAdminMode()" class="fixed bottom-4 right-4 bg-slate-800 text-white w-10 h-10 rounded-full shadow-lg flex justify-center items-center opacity-30 hover:opacity-100 transition no-print z-50">
+        <i class="fas fa-lock"></i>
+    </button>
+
+    <!-- Print Only Container -->
+    <div id="print-container" class="print-only print-container p-8">
+        <!-- Print content injected here -->
+    </div>
+
+    <!-- Loading Modal -->
+    <div id="loading-modal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm hidden justify-center items-center z-50 no-print">
+        <div class="bg-white p-8 rounded-2xl shadow-2xl flex flex-col items-center max-w-sm w-full text-center">
+            <div class="loader mb-6"></div>
+            <h3 class="text-lg font-bold text-slate-800 mb-2">Memproses Karya...</h3>
+            <p class="text-sm text-slate-500">Sistem sedang memproses. Mohon tunggu sebentar.</p>
+        </div>
+    </div>
+
+    <!-- Success Modal -->
+    <div id="success-modal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm hidden justify-center items-center z-50 no-print">
+        <div class="bg-white p-8 rounded-2xl shadow-2xl flex flex-col items-center max-w-sm w-full text-center transform scale-95 transition-transform duration-300" id="success-modal-content">
+            <div class="w-16 h-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center text-3xl mb-4">
+                <i class="fas fa-check"></i>
+            </div>
+            <h3 class="text-2xl font-bold text-slate-800 mb-2">Berhasil!</h3>
+            <p class="text-slate-600 mb-6">Karya ceritamu telah berhasil dikirim. Terima kasih telah berpartisipasi!</p>
+            <button onclick="closeSuccessModal()" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded-lg transition">
+                Kembali
+            </button>
+        </div>
+    </div>
+
+    <!-- Firebase SDKs & App Logic -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Environment Variables (Provided by Canvas platform)
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'lomba-menulis-cerita-app';
+        let firebaseConfig = {};
+        try {
+            firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {
+                // Dummy fallback config for local testing without errors if not present
+                projectId: "dummy-project"
+            };
+        } catch(e) {
+            console.error("Firebase config error", e);
+        }
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+        let currentUserId = null;
+        
+        // Data Path Rule: /artifacts/{appId}/public/data/submissions
+        const submissionsColRef = collection(db, 'artifacts', appId, 'public', 'data', 'submissions');
+
+        // Initialize Auth FIRST before any DB operations
+        async function initAuth() {
+            try {
+                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                    const userCredential = await signInWithCustomToken(auth, __initial_auth_token);
+                    currentUserId = userCredential.user.uid;
+                } else {
+                    const userCredential = await signInAnonymously(auth);
+                    currentUserId = userCredential.user.uid;
+                }
+                console.log("Authenticated User:", currentUserId);
+            } catch (error) {
+                console.error("Authentication failed:", error);
+            }
+        }
+
+        // --- Utility function untuk escape HTML (Mencegah XSS) ---
+        function escapeHtml(unsafe) {
+            if(!unsafe) return "";
+            return unsafe
+                 .toString()
+                 .replace(/&/g, "&amp;")
+                 .replace(/</g, "&lt;")
+                 .replace(/>/g, "&gt;")
+                 .replace(/"/g, "&quot;")
+                 .replace(/'/g, "&#039;");
+        }
+
+        // Word Counter Logic
+        const maxWords = 1700;
+        const inputCerita = document.getElementById('input-cerita');
+        const wordCounter = document.getElementById('word-counter');
+
+        function countWords(str) {
+            return str.trim().split(/\s+/).filter(word => word.length > 0).length;
+        }
+
+        inputCerita.addEventListener('input', function() {
+            let words = countWords(this.value);
+            
+            if (words > maxWords) {
+                // Trim logic if exceeds
+                const wordsArray = this.value.trim().split(/\s+/);
+                const truncated = wordsArray.slice(0, maxWords).join(" ");
+                this.value = truncated;
+                words = maxWords;
+            }
+            
+            wordCounter.textContent = `${words} / ${maxWords} kata`;
+            
+            if (words >= maxWords) {
+                wordCounter.classList.add('text-red-600', 'font-bold');
+                wordCounter.classList.remove('text-slate-600');
+            } else {
+                wordCounter.classList.remove('text-red-600', 'font-bold');
+                wordCounter.classList.add('text-slate-600');
+            }
+        });
+
+        // Gemini AI Evaluation Logic
+        async function evaluateStoryWithAI(tema, judul, cerita) {
+            // Note: Tambahkan API Key Anda di sini jika menjalankan di luar platform yang menyediakan auto-inject
+            const apiKey = typeof __gemini_api_key !== 'undefined' ? __gemini_api_key : ""; 
+            if(!apiKey) {
+                console.warn("API Key Gemini tidak ditemukan, evaluasi AI akan dilewati.");
+                return { total_score: 'N/A', breakdown: {}, feedback: "Evaluasi tidak tersedia (API Key kosong)." };
+            }
+
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`;
+            
+            const prompt = `
+            Anda adalah pakar bahasa Indonesia, pakar pendidikan, dan ahli analisis cerita. 
+            Evaluasi cerita pendek siswa berikut yang diikutkan dalam lomba menulis.
+            
+            Tema yang dipilih: "${tema}"
+            Judul Cerita: "${judul}"
+            Isi Cerita: "${cerita}"
+
+            Kriteria Penilaian (Skala 1-100 secara keseluruhan):
+            1. Kesesuaian dengan tema (Bobot 20%)
+            2. Kreativitas pengolahan cerita (Bobot 30%)
+            3. Bahasa dan tata bahasa (Bobot 20%)
+            4. Kepaduan unsur cerita (alur, tokoh, latar) (Bobot 30%)
+
+            Berikan penilaian yang adil untuk anak SD kelas 3-5. 
+            `;
+
+            const payload = {
+                contents: [{ parts: [{ text: prompt }] }],
+                generationConfig: {
+                    responseMimeType: "application/json",
+                    responseSchema: {
+                        type: "OBJECT",
+                        properties: {
+                            "total_score": { "type": "NUMBER" },
+                            "breakdown": {
+                                "type": "OBJECT",
+                                "properties": {
+                                    "kesesuaian_tema": { "type": "NUMBER", "description": "Max 20" },
+                                    "kreativitas": { "type": "NUMBER", "description": "Max 30" },
+                                    "bahasa": { "type": "NUMBER", "description": "Max 20" },
+                                    "kepaduan": { "type": "NUMBER", "description": "Max 30" }
+                                }
+                            },
+                            "feedback": { "type": "STRING", "description": "Catatan singkat 1-2 kalimat" }
+                        },
+                        "required": ["total_score", "breakdown", "feedback"]
+                    }
+                }
+            };
+
+            try {
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const result = await response.json();
+                
+                if (result.candidates && result.candidates[0].content.parts[0].text) {
+                    const jsonText = result.candidates[0].content.parts[0].text;
+                    return JSON.parse(jsonText);
+                }
+            } catch (error) {
+                console.error("AI Evaluation error", error);
+            }
+            
+            // Fallback default if AI fails to prevent app crash
+            return {
+                total_score: 0,
+                breakdown: { kesesuaian_tema: 0, kreativitas: 0, bahasa: 0, kepaduan: 0 },
+                feedback: "Evaluasi gagal diproses oleh sistem AI."
+            };
+        }
+
+        // Form Submission
+        document.getElementById('submission-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const words = countWords(inputCerita.value);
+            if(words === 0) return;
+
+            // Show loading
+            document.getElementById('loading-modal').classList.replace('hidden', 'flex');
+
+            try {
+                // Ensure auth is ready
+                if (!currentUserId) await initAuth();
+                if (!currentUserId) throw new Error("Gagal mengautentikasi pengguna");
+
+                const data = {
+                    nama: document.getElementById('input-nama').value,
+                    kelas: document.getElementById('input-kelas').value,
+                    tema: document.getElementById('input-tema').value,
+                    judul: document.getElementById('input-judul').value,
+                    cerita: document.getElementById('input-cerita').value,
+                    timestamp: new Date().toISOString()
+                };
+
+                // Call AI for evaluation
+                const aiResult = await evaluateStoryWithAI(data.tema, data.judul, data.cerita);
+                data.ai_evaluation = aiResult;
+
+                // Save to Firestore
+                await addDoc(submissionsColRef, data);
+
+                // Success
+                document.getElementById('loading-modal').classList.replace('flex', 'hidden');
+                document.getElementById('submission-form').reset();
+                wordCounter.textContent = '0 / 1700 kata';
+                document.getElementById('success-modal').classList.replace('hidden', 'flex');
+
+            } catch (error) {
+                console.error(error);
+                document.getElementById('loading-modal').classList.replace('flex', 'hidden');
+                // Use a simple custom UI error msg instead of alert
+                alertFallback("Terjadi kesalahan saat menyimpan data. Silakan coba lagi.");
+            }
+        });
+
+        // Global functions for UI Interaction
+        window.closeSuccessModal = () => {
+            document.getElementById('success-modal').classList.replace('flex', 'hidden');
+        };
+
+        function alertFallback(msg) {
+            // Simplified custom alert fallback since we can't use alert()
+            const fallback = document.createElement('div');
+            fallback.className = 'fixed top-4 left-1/2 transform -translate-x-1/2 bg-red-500 text-white px-6 py-3 rounded-lg shadow-xl z-[100] transition-opacity duration-300';
+            fallback.innerHTML = `<i class="fas fa-exclamation-circle mr-2"></i> ${msg}`;
+            document.body.appendChild(fallback);
+            setTimeout(() => {
+                fallback.style.opacity = '0';
+                setTimeout(() => fallback.remove(), 300);
+            }, 3000);
+        }
+
+        // --- Admin Mode Logic ---
+        let isAdmin = false;
+        let adminSubmissions = []; // Store fetched data
+
+        window.toggleAdminMode = () => {
+            isAdmin = !isAdmin;
+            document.getElementById('student-view').classList.toggle('hidden', isAdmin);
+            document.getElementById('admin-view').classList.toggle('hidden', !isAdmin);
+            
+            const indicator = document.getElementById('nav-mode-indicator');
+            if (isAdmin) {
+                indicator.textContent = 'Mode Admin';
+                indicator.classList.replace('bg-blue-700', 'bg-slate-800');
+                window.fetchSubmissions(); // Load data
+            } else {
+                indicator.textContent = 'Mode Siswa';
+                indicator.classList.replace('bg-slate-800', 'bg-blue-700');
+            }
+        };
+
+        window.fetchSubmissions = async () => {
+            if (!currentUserId) await initAuth();
+            if (!currentUserId) return;
+
+            const tbody = document.getElementById('admin-table-body');
+            tbody.innerHTML = `<tr><td colspan="6" class="px-6 py-8 text-center text-slate-500"><div class="loader mx-auto mb-4 border-slate-300 border-t-slate-600"></div>Memuat data...</td></tr>`;
+            
+            try {
+                // Fetch all without complex queries
+                const q = query(submissionsColRef); 
+                const querySnapshot = await getDocs(q);
+                
+                adminSubmissions = [];
+                querySnapshot.forEach((doc) => {
+                    adminSubmissions.push({ id: doc.id, ...doc.data() });
+                });
+
+                // Sort in memory by timestamp descending
+                adminSubmissions.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+
+                renderAdminTable();
+            } catch (error) {
+                console.error("Error fetching admin data", error);
+                tbody.innerHTML = `<tr><td colspan="6" class="px-6 py-8 text-center text-red-500">Gagal memuat data. Periksa koneksi atau hak akses.</td></tr>`;
+            }
+        };
+
+        function renderAdminTable() {
+            const tbody = document.getElementById('admin-table-body');
+            
+            if (adminSubmissions.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" class="px-6 py-8 text-center text-slate-500">Belum ada karya yang dikirimkan.</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = '';
+            adminSubmissions.forEach((sub, index) => {
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-slate-50 transition border-b border-slate-100 last:border-0";
+                
+                const score = sub.ai_evaluation?.total_score || 'N/A';
+                let scoreBadge = 'bg-slate-100 text-slate-700';
+                if(score !== 'N/A') {
+                    if (score >= 85) scoreBadge = 'bg-green-100 text-green-700';
+                    else if (score >= 70) scoreBadge = 'bg-yellow-100 text-yellow-700';
+                    else scoreBadge = 'bg-red-100 text-red-700';
+                }
+
+                tr.innerHTML = `
+                    <td class="px-6 py-4 font-medium text-slate-800">${escapeHtml(sub.nama)}</td>
+                    <td class="px-6 py-4 text-slate-600">${escapeHtml(sub.kelas)}</td>
+                    <td class="px-6 py-4 text-slate-600 text-sm">${escapeHtml(sub.tema)}</td>
+                    <td class="px-6 py-4 text-slate-800 max-w-xs truncate" title="${escapeHtml(sub.judul)}">${escapeHtml(sub.judul)}</td>
+                    <td class="px-6 py-4 text-center">
+                        <span class="px-3 py-1 rounded-full text-xs font-bold ${scoreBadge}">${score}</span>
+                    </td>
+                    <td class="px-6 py-4 text-center">
+                        <button onclick="printSubmission('${sub.id}')" class="text-blue-600 hover:text-blue-800 bg-blue-50 hover:bg-blue-100 p-2 rounded transition" title="Unduh PDF Karya">
+                            <i class="fas fa-file-pdf"></i> Unduh PDF
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // Print Logic (COMPLETED)
+        window.printSubmission = (id) => {
+            const sub = adminSubmissions.find(s => s.id === id);
+            if (!sub) return;
+
+            // Tampilkan loading modal saat membuat PDF
+            const loadingModal = document.getElementById('loading-modal');
+            const loadingTitle = document.querySelector('#loading-modal h3');
+            const loadingDesc = document.querySelector('#loading-modal p');
+            
+            loadingTitle.textContent = "Membuat Dokumen PDF...";
+            loadingDesc.textContent = "Mohon tunggu sebentar, sistem sedang menyiapkan file PDF untuk diunduh.";
+            loadingModal.classList.replace('hidden', 'flex');
+
+            const printContainer = document.getElementById('print-container');
+            const evalBreakdown = sub.ai_evaluation?.breakdown || {};
+            
+            // Format story with clean HTML paragraphs
+            const paragraphs = escapeHtml(sub.cerita).split('\n').filter(p => p.trim().length > 0);
+            const formattedStory = paragraphs.map(p => `<p class="mb-3 text-justify leading-relaxed text-slate-800 text-sm font-serif" style="text-indent: 1.5rem;">${p}</p>`).join('');
+
+            printContainer.innerHTML = `
+                <div id="pdf-content" class="pdf-page">
+                    <!-- Header Dokumen -->
+                    <div class="border-b-2 border-slate-800 pb-3 mb-6 flex justify-between items-end">
+                        <div>
+                            <h1 class="text-xl font-bold text-slate-900 uppercase tracking-wide">Hasil Lomba Menulis Cerita</h1>
+                            <p class="text-xs text-slate-500">Bahasa Indonesia - Sekolah Dasar</p>
+                        </div>
+                        <div class="text-right text-xs text-slate-500">
+                            ${new Date(sub.timestamp).toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' })}
+                        </div>
+                    </div>
+
+                    <!-- Informasi Peserta -->
+                    <div class="bg-slate-50 border border-slate-200 rounded-lg p-4 mb-6 grid grid-cols-2 gap-y-2 gap-x-4 text-xs">
+                        <div><span class="font-bold text-slate-600">Nama Peserta:</span> <span class="font-semibold text-slate-900">${escapeHtml(sub.nama)}</span></div>
+                        <div><span class="font-bold text-slate-600">Kelas:</span> <span class="font-semibold text-slate-900">${escapeHtml(sub.kelas)}</span></div>
+                        <div><span class="font-bold text-slate-600">Tema Cerita:</span> <span class="font-semibold text-slate-900">${escapeHtml(sub.tema)}</span></div>
+                        <div><span class="font-bold text-slate-600">Jumlah Kata:</span> <span class="font-semibold text-slate-900">${sub.cerita.trim().split(/\s+/).length} kata</span></div>
+                    </div>
+
+                    <!-- Judul & Isi Cerita -->
+                    <div class="mb-8">
+                        <h2 class="text-lg font-bold text-center text-slate-900 mb-4 border-b border-dashed border-slate-300 pb-2">${escapeHtml(sub.judul)}</h2>
+                        <div class="story-body">
+                            ${formattedStory}
+                        </div>
+                    </div>
+
+                    <!-- Section Evaluasi AI (Menggunakan html2pdf break class agar tidak terpotong sembarangan) -->
+                    <div class="html2pdf__page-break-before mt-6 border-2 border-slate-800 p-5 rounded-lg bg-slate-50">
+                        <div class="flex justify-between items-center border-b pb-3 border-slate-300 mb-4">
+                            <div>
+                                <h3 class="text-base font-bold text-slate-900">Evaluasi Juri AI</h3>
+                                <p class="text-xs text-slate-500">Penilaian Otomatis Berdasarkan Rubrik Lomba</p>
+                            </div>
+                            <div class="text-right">
+                                <span class="text-xs font-semibold text-slate-500 block">Skor Akhir</span>
+                                <span class="text-2xl font-black text-blue-700">${sub.ai_evaluation?.total_score || 0} / 100</span>
+                            </div>
+                        </div>
+                        
+                        <div class="grid grid-cols-2 gap-3 mb-4 text-xs">
+                            <div class="bg-white p-2.5 rounded border border-slate-200 flex justify-between items-center">
+                                <span class="text-slate-600">Kesesuaian Tema (20%):</span>
+                                <span class="font-bold text-slate-900">${evalBreakdown.kesesuaian_tema || 0}</span>
+                            </div>
+                            <div class="bg-white p-2.5 rounded border border-slate-200 flex justify-between items-center">
+                                <span class="text-slate-600">Kreativitas (30%):</span>
+                                <span class="font-bold text-slate-900">${evalBreakdown.kreativitas || 0}</span>
+                            </div>
+                            <div class="bg-white p-2.5 rounded border border-slate-200 flex justify-between items-center">
+                                <span class="text-slate-600">Penggunaan Bahasa (20%):</span>
+                                <span class="font-bold text-slate-900">${evalBreakdown.bahasa || 0}</span>
+                            </div>
+                            <div class="bg-white p-2.5 rounded border border-slate-200 flex justify-between items-center">
+                                <span class="text-slate-600">Kepaduan Unsur (30%):</span>
+                                <span class="font-bold text-slate-900">${evalBreakdown.kepaduan || 0}</span>
+                            </div>
+                        </div>
+
+                        <div>
+                            <h4 class="text-xs font-bold text-slate-800 mb-1">Catatan & Analisis Penilai:</h4>
+                            <p class="text-xs italic text-slate-700 bg-white p-3 border border-slate-200 rounded leading-relaxed">${escapeHtml(sub.ai_evaluation?.feedback || '-')}</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            // Proses export ke PDF menggunakan HTML2PDF
+            setTimeout(() => {
+                const element = document.getElementById('pdf-content');
+                const opt = {
+                    margin:       0, // Margin diset 0 karena padding sudah dihandle di class .pdf-page
+                    filename:     `Karya_${sub.nama.replace(/\s+/g, '_')}_${sub.kelas}.pdf`,
+                    image:        { type: 'jpeg', quality: 0.98 },
+                    html2canvas:  { scale: 2, useCORS: true },
+                    jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+                };
+
+                html2pdf().set(opt).from(element).save().then(() => {
+                    loadingModal.classList.replace('flex', 'hidden');
+                    printContainer.innerHTML = ''; // Bersihkan container setelah selesai
+                }).catch(err => {
+                    console.error("Gagal membuat PDF:", err);
+                    loadingModal.classList.replace('flex', 'hidden');
+                    alertFallback("Gagal memproses file PDF.");
+                    printContainer.innerHTML = '';
+                });
+            }, 500); // Beri waktu sebentar agar render DOM selesai
+        };
+
+        // Panggil auth di awal
+        initAuth();
+
+    </script>
+</body>
+</html>
